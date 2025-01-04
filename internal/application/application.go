@@ -28,7 +28,7 @@ func (a *Application) Run() {
 	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		panic(err)
 	}
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(a.cfg.Server.GinMode)
 
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, "pong")
