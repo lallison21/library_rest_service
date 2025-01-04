@@ -3,9 +3,9 @@ x-def-logging: &default-logging
     driver: "loki"
     options:
       # Адрес Loki, куда складывать логи
-      # Обратите внимание, что здесь используется не имя сервиса loki, а локальный хост, на который проброшен порт Loki,
-      # это сделано потому, что логи будет писать docker engine, котрый расположен на хостовой машине,
-      # и он не знает имени хоста контейнера Loki, которое ему присвоил compose во внутренней сети проекта.
+      # обратите внимание, что здесь используется не имя сервиса loki, а локальный хост, на который проброшен порт Loki.
+      # Это сделано потому, что логи будет писать docker engine, который расположен на хостовой машине.
+      # И он не знает имени хоста контейнера Loki, которое ему присвоил compose во внутренней сети проекта.
       loki-url: "http://localhost:3100/loki/api/v1/push"
       loki-batch-size: "100"
       loki-retries: 2
@@ -28,7 +28,7 @@ services:
     environment:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       # Включим доступ без авторизации
-      - GF_AUTH_ANONYMOUS_ENABLED=true # Не используйте **ANONYMOUS** настройки в проде
+      - GF_AUTH_ANONYMOUS_ENABLED=true # Не используйте **ANONYMOUS** настройки в проде.
       # Дадим права администратора при анонимном входе
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - TZ=${SYSTEM_TIMEZONE:-Europe/Moscow}
