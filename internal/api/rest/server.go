@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func New(cfg *config.Server, logging *slog.Logger, service services.Service) *http.Server {
+func New(cfg *config.Server, logging *slog.Logger, service *services.Service) *http.Server {
 	router := gin.New()
 	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		panic(err)
