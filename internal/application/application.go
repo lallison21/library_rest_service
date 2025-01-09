@@ -1,17 +1,24 @@
 package application
 
 import (
+	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/lallison21/library_rest_service/internal/api/rest"
 	"github.com/lallison21/library_rest_service/internal/config/config"
 	"github.com/lallison21/library_rest_service/internal/config/logging"
+	"github.com/lallison21/library_rest_service/internal/services"
+	"golang.org/x/sync/errgroup"
 	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 type Application struct {
 	cfg     *config.Config
 	logging *slog.Logger
+	service *services.Service
 }
 
 func New() *Application {
@@ -20,31 +27,40 @@ func New() *Application {
 		panic(err)
 	}
 
+	service := services.New()
 	logger := logging.New(cfg.Logging)
 
 	return &Application{
 		cfg:     &cfg,
 		logging: logger,
+		service: service,
 	}
 }
 
 func (a *Application) Run() {
-	router := gin.New()
+	ctx, cancel := context.WithCancel(context.Background())
 
-	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
-		panic(err)
-	}
-	gin.SetMode(a.cfg.Server.GinMode)
+	go func() {
+		s := make(chan os.Signal, 1)
+		signal.Notify(s, syscall.SIGINT, syscall.SIGTERM)
 
-	router.GET("/ping", func(c *gin.Context) {
-		a.logging.Debug("pong")
-		c.JSON(200, "pong")
+		<-s
+		cancel()
+	}()
+
+	server := rest.New(&a.cfg.Server, a.logging, a.service)
+
+	g, gCtx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		return server.ListenAndServe()
+	})
+	g.Go(func() error {
+		<-gCtx.Done()
+		a.logging.Info("shutting down server...")
+		return server.Shutdown(context.Background())
 	})
 
-	addr := fmt.Sprintf("%s:%s", a.cfg.Server.Host, a.cfg.Server.Port)
-	a.logging.Info(fmt.Sprintf("Listening on %s", addr))
-
-	if err := router.Run(addr); err != nil {
-		panic(err)
+	if err := g.Wait(); err != nil {
+		a.logging.Info(fmt.Sprintf("exit reason: %s \n", err))
 	}
 }
