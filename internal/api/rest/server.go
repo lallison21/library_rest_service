@@ -4,24 +4,33 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/lallison21/library_rest_service/internal/config/config"
-	"github.com/lallison21/library_rest_service/internal/services"
-	"log/slog"
 	"net/http"
 )
 
-func New(cfg *config.Server, logging *slog.Logger, service *services.Service) *http.Server {
+type Rest struct {
+	Server *http.Server
+}
+
+func New(cfg *config.Server) *Rest {
+	gin.SetMode(cfg.GinMode)
+
+	address := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
+	server := &http.Server{
+		Addr: address,
+	}
+
+	return &Rest{
+		Server: server,
+	}
+}
+
+func (r *Rest) RegisterAuthHandler() {
 	router := gin.New()
 	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		panic(err)
 	}
-	gin.SetMode(cfg.GinMode)
 
-	handler := NewHandler(logging, service)
-	router.GET("/ping", handler.Ping())
+	router.Group("/auth")
 
-	address := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
-	return &http.Server{
-		Addr:    address,
-		Handler: router,
-	}
+	r.Server.Handler = router
 }

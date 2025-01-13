@@ -3,64 +3,90 @@ package application
 import (
 	"context"
 	"fmt"
-	"github.com/ilyakaznacheev/cleanenv"
-	"github.com/lallison21/library_rest_service/internal/api/rest"
+	"github.com/gin-gonic/gin"
 	"github.com/lallison21/library_rest_service/internal/config/config"
-	"github.com/lallison21/library_rest_service/internal/config/logging"
-	"github.com/lallison21/library_rest_service/internal/services"
-	"golang.org/x/sync/errgroup"
+	"github.com/lallison21/library_rest_service/version"
 	"log/slog"
-	"os"
+	"net/http"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
-type Application struct {
-	cfg     *config.Config
-	logging *slog.Logger
-	service *services.Service
+type Handlers struct {
+	Auth AuthHandler
 }
 
-func New() *Application {
-	var cfg config.Config
-	if err := cleanenv.ReadEnv(&cfg); err != nil {
+type Application struct {
+	cfg *config.Config
+	log *slog.Logger
+
+	ctx    context.Context
+	cancel context.CancelFunc
+
+	server *http.Server
+	router *gin.Engine
+
+	Handlers Handlers
+}
+
+func New(cfg *config.Config, log *slog.Logger) *Application {
+	router := gin.New()
+	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		panic(err)
 	}
 
-	service := services.New()
-	logger := logging.New(cfg.Logging)
+	ctx, cancel := context.WithCancel(context.Background())
+	server := &http.Server{}
 
-	return &Application{
-		cfg:     &cfg,
-		logging: logger,
-		service: service,
+	app := &Application{
+		cfg:    cfg,
+		log:    log,
+		ctx:    ctx,
+		cancel: cancel,
+		server: server,
+		router: router,
 	}
+	return app
+}
+
+func (a *Application) RegisterHandlers() {
+	authRoute := a.router.Group("/auth")
+	authRoute.POST("/register", a.Handlers.Auth.Login())
+	authRoute.POST("/login", a.Handlers.Auth.Login())
 }
 
 func (a *Application) Run() {
-	ctx, cancel := context.WithCancel(context.Background())
+	go a.gracefulShutdown()
 
-	go func() {
-		s := make(chan os.Signal, 1)
-		signal.Notify(s, syscall.SIGINT, syscall.SIGTERM)
+	addr := fmt.Sprintf("%s:%s", a.cfg.Server.Host, a.cfg.Server.Port)
+	gin.SetMode(a.cfg.Server.GinMode)
 
-		<-s
-		cancel()
-	}()
+	a.server.Addr = addr
+	a.server.Handler = a.router
 
-	server := rest.New(&a.cfg.Server, a.logging, a.service)
+	a.log.Info("application started",
+		"address", addr,
+		"name", version.Name,
+		"version", version.Version,
+		"build_time", version.BuildTime,
+	)
+	if err := a.server.ListenAndServe(); err != nil {
+		a.log.Error("application failed to start", err.Error())
+	}
+}
 
-	g, gCtx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		return server.ListenAndServe()
-	})
-	g.Go(func() error {
-		<-gCtx.Done()
-		a.logging.Info("shutting down server...")
-		return server.Shutdown(context.Background())
-	})
+func (a *Application) gracefulShutdown() {
+	signalCtx, stop := signal.NotifyContext(a.ctx, syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
-	if err := g.Wait(); err != nil {
-		a.logging.Info(fmt.Sprintf("exit reason: %s \n", err))
+	<-signalCtx.Done()
+	a.log.Info("shutting down server...")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := a.server.Shutdown(shutdownCtx); err != nil {
+		a.log.Error("failed to gracefully shutdown server", "error", err.Error())
 	}
 }
