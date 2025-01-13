@@ -1,6 +1,6 @@
 package services
 
-type Repository interface {
+type StatusRepo interface {
 }
 
 type AuthRepo interface {

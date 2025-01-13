@@ -14,7 +14,8 @@ import (
 )
 
 type Handlers struct {
-	Auth AuthHandler
+	Status StatusHandler
+	Auth   AuthHandler
 }
 
 type Application struct {
@@ -51,6 +52,8 @@ func New(cfg *config.Config, log *slog.Logger) *Application {
 }
 
 func (a *Application) RegisterHandlers() {
+	a.router.GET("/ping", a.Handlers.Status.Ping())
+
 	authRoute := a.router.Group("/auth")
 	authRoute.POST("/register", a.Handlers.Auth.Login())
 	authRoute.POST("/login", a.Handlers.Auth.Login())
