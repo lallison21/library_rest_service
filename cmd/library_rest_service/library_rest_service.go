@@ -14,13 +14,13 @@ import (
 )
 
 func main() {
-	var cfg *config.Config
+	var cfg config.Config
 	if err := cleanenv.ReadEnv(&cfg); err != nil {
 		panic(err)
 	}
 	log := logging.New(cfg.Logging)
 
-	app := application.New(cfg, log)
+	app := application.New(&cfg, log)
 
 	statusRepo := status_repo.New()
 	statusService := status_service.New(statusRepo)

@@ -1,7 +1,7 @@
 package api
 
 type StatusService interface {
-	Ping() error
+	Ping() (string, error)
 }
 
 type AuthService interface {

@@ -12,6 +12,6 @@ func New(repo services.StatusRepo) *Service {
 	}
 }
 
-func (s *Service) Ping() error {
-	return nil
+func (s *Service) Ping() (string, error) {
+	return s.repo.Ping()
 }
