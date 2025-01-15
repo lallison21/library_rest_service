@@ -20,9 +20,7 @@ func New(cfg config.Logging) *slog.Logger {
 		out = os.Stdout
 	}
 
-	handleOpt := &slog.HandlerOptions{
-		AddSource: true,
-	}
+	handleOpt := &slog.HandlerOptions{}
 	if cfg.IsDebug {
 		handleOpt.Level = slog.LevelDebug
 	} else {
