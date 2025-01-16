@@ -37,7 +37,7 @@ services:
     ports:
       - "3000:3000"
 
-  library-rest-service:
+  library_rest_service:
     build:
       context: ../..
       dockerfile: deployment/development/Dockerfile
@@ -49,10 +49,10 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      library-db:
+      library_db:
         condition: service_healthy
 
-  library-db:
+  library_db:
     image: postgres:latest
     container_name: library-database
     env_file:
@@ -67,14 +67,14 @@ services:
 
   migrate:
     image: migrate/migrate
-    profiles: ["tools"]
+    profiles: [ "tools" ]
     env_file:
       - .env
     volumes:
       - ./migrations:/migrations
     entrypoint:
       [
-        "migrate"
+        "migrate",
         "-path",
         "/migrations",
         "-database",
@@ -82,6 +82,6 @@ services:
       ]
     command: ["up", "down"]
     depends_on:
-      library-db:
+      library_db:
         condition: service_healthy
 
