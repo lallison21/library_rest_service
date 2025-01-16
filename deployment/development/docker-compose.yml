@@ -37,7 +37,7 @@ services:
     ports:
       - "3000:3000"
 
-  library_rest_service:
+  library-rest-service:
     build:
       context: ../..
       dockerfile: deployment/development/Dockerfile
@@ -48,3 +48,40 @@ services:
     <<: *default-logging
     ports:
       - "8000:8000"
+    depends_on:
+      library-db:
+        condition: service_healthy
+
+  library-db:
+    image: postgres:latest
+    container_name: library-database
+    env_file:
+      - .env
+    volumes:
+      - ./.database/data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate
+    profiles: ["tools"]
+    env_file:
+      - .env
+    volumes:
+      - ./migrations:/migrations
+    entrypoint:
+      [
+        "migrate"
+        "-path",
+        "/migrations",
+        "-database",
+        "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=${SSL_MODE}"
+      ]
+    command: ["up", "down"]
+    depends_on:
+      library-db:
+        condition: service_healthy
+
