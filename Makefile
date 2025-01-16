@@ -7,6 +7,7 @@ DOCKER_COMPOSE?=deployment/development/docker-compose.yml
 up:
 	docker compose -f ${DOCKER_COMPOSE} down -v
 	docker compose -f ${DOCKER_COMPOSE} up -d library-db
+	docker compose -f ${DOCKER_COMPOSE} --profile tools run --rm migrate up
 	docker compose -f ${DOCKER_COMPOSE} up -d --build --force-recreate library-rest-service
 	docker compose -f ${DOCKER_COMPOSE} up -d grafana loki
 
