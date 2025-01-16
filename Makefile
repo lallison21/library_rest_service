@@ -2,7 +2,7 @@ include scripts/library_rest_service.mk
 
 DOCKER_COMPOSE?=deployment/development/docker-compose.yml
 
-.PHONY: up down
+.PHONY: up down create-migration migration-up migration-down
 
 up:
 	docker compose -f ${DOCKER_COMPOSE} down -v
