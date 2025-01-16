@@ -55,7 +55,7 @@ func (a *Application) RegisterHandlers() {
 	a.router.GET("/ping", a.Handlers.Status.Ping())
 
 	authRoute := a.router.Group("/auth")
-	authRoute.POST("/register", a.Handlers.Auth.Login())
+	authRoute.POST("/register", a.Handlers.Auth.Register())
 	authRoute.POST("/login", a.Handlers.Auth.Login())
 }
 
