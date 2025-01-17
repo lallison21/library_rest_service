@@ -17,5 +17,7 @@ func New(repo services.AuthRepo) *AuthService {
 }
 
 func (s *AuthService) Register(ctx context.Context, newUser *models.UserDAO) (int, error) {
+	// TODO: generate hash password
+
 	return s.repo.Register(ctx, newUser)
 }
