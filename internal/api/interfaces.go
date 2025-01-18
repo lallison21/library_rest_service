@@ -10,5 +10,5 @@ type StatusService interface {
 }
 
 type AuthService interface {
-	Register(ctx context.Context, user *models.UserDAO) (int, error)
+	Register(ctx context.Context, user *models.UserDTO) (int, error)
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/lallison21/library_rest_service/internal/repository/status_repo"
 	"github.com/lallison21/library_rest_service/internal/services/auth_service"
 	"github.com/lallison21/library_rest_service/internal/services/status_service"
+	"github.com/lallison21/library_rest_service/internal/utils/password_utils"
 )
 
 func main() {
@@ -22,6 +23,8 @@ func main() {
 	log := logging.New(cfg.Logging)
 	pg := postgres.New(cfg.Postgres, log)
 
+	passUtils := password_utils.New(&cfg.Password)
+
 	app := application.New(&cfg, log)
 
 	statusRepo := status_repo.New(pg)
@@ -30,7 +33,7 @@ func main() {
 	app.Handlers.Status = statusHandler
 
 	authRepo := auth_repo.New(pg)
-	authService := auth_service.New(authRepo)
+	authService := auth_service.New(authRepo, passUtils)
 	authHandler := auth_handler.New(authService, log)
 	app.Handlers.Auth = authHandler
 

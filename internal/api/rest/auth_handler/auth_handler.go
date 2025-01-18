@@ -25,7 +25,7 @@ func New(service api.AuthService, logging *slog.Logger) *Handler {
 
 func (h *Handler) Register() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var newUser models.CreateUserDTO
+		var newUser models.CreateUser
 
 		if err := c.BindJSON(&newUser); err != nil {
 			var validation validator.ValidationErrors
@@ -41,7 +41,7 @@ func (h *Handler) Register() gin.HandlerFunc {
 
 		ctx := c.Request.Context()
 
-		userId, err := h.service.Register(ctx, newUser.MapToDAO())
+		userId, err := h.service.Register(ctx, newUser.MapToDTO())
 		if err != nil {
 			h.logging.Error(fmt.Sprintf("[Register] [Register] create user: %v", err))
 		}

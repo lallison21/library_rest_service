@@ -12,3 +12,8 @@ type StatusRepo interface {
 type AuthRepo interface {
 	Register(ctx context.Context, newUser *models.UserDAO) (int, error)
 }
+
+type PasswordUtils interface {
+	GeneratePassword(password string) (string, error)
+	ComparePassword(password, hash string) (bool, error)
+}
