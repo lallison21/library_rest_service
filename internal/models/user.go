@@ -1,10 +1,10 @@
 package models
 
 type CreateUser struct {
-	Login           string `json:"login,omitempty" example:"johndoe" binding:"required,alphanum"`
-	Password        string `json:"password,omitempty" example:"123456" binding:"required,gte=8"`
-	ConfirmPassword string `json:"confirm_password,omitempty" example:"123456" binding:"required,gte=8,eqfield=Password"`
-	Email           string `json:"email,omitempty" example:"johndoe@example.com" binding:"required,email"`
+	Login           string `binding:"required,alphanum"               example:"johndoe"             json:"login,omitempty"`
+	Password        string `binding:"required,gte=8"                  example:"123456"              json:"password,omitempty"`        //nolint:lll // it's struct tags
+	ConfirmPassword string `binding:"required,gte=8,eqfield=Password" example:"123456"              json:"confirmPassword,omitempty"` //nolint:lll // it's struct tags
+	Email           string `binding:"required,email"                  example:"johndoe@example.com" json:"email,omitempty"`
 }
 
 func (u *CreateUser) MapToDTO() *UserDTO {

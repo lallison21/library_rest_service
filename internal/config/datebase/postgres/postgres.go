@@ -3,18 +3,22 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/lallison21/library_rest_service/internal/config/config"
 	"log/slog"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/lallison21/library_rest_service/internal/config/config"
 )
 
 func New(cfg config.Postgres, log *slog.Logger) *pgxpool.Pool {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	const waitingTime = 5 * time.Second
+
+	ctx, cancel := context.WithTimeout(context.Background(), waitingTime)
 	defer cancel()
 
 	dataSourceName := fmt.Sprintf(
-		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s pool_max_conns=%s pool_max_conn_lifetime=%s pool_max_conn_idle_time=%s",
+		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s"+
+			"pool_max_conns=%s pool_max_conn_lifetime=%s pool_max_conn_idle_time=%s",
 		cfg.Host,
 		cfg.Port,
 		cfg.User,
@@ -39,5 +43,6 @@ func New(cfg config.Postgres, log *slog.Logger) *pgxpool.Pool {
 	}
 
 	log.Info("connect to postgres successfully")
+
 	return connPool
 }

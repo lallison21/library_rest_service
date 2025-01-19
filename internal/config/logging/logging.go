@@ -1,20 +1,23 @@
 package logging
 
 import (
-	"github.com/lallison21/library_rest_service/internal/config/config"
 	"io"
 	"log/slog"
 	"os"
 	"runtime/debug"
+
+	"github.com/lallison21/library_rest_service/internal/config/config"
 )
 
 func New(cfg config.Logging) *slog.Logger {
 	var out io.Writer
+
 	if cfg.LogToFile {
-		file, err := os.Create("auth_service.log")
+		file, err := os.Create("authhandler.log")
 		if err != nil {
 			panic(err)
 		}
+
 		out = file
 	} else {
 		out = os.Stdout

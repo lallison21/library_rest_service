@@ -3,14 +3,15 @@ package application
 import (
 	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/lallison21/library_rest_service/internal/config/config"
-	"github.com/lallison21/library_rest_service/version"
 	"log/slog"
 	"net/http"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/lallison21/library_rest_service/internal/config/config"
+	"github.com/lallison21/library_rest_service/version"
 )
 
 type Handlers struct {
@@ -21,9 +22,6 @@ type Handlers struct {
 type Application struct {
 	cfg *config.Config
 	log *slog.Logger
-
-	ctx    context.Context
-	cancel context.CancelFunc
 
 	server *http.Server
 	router *gin.Engine
@@ -37,24 +35,24 @@ func New(cfg *config.Config, log *slog.Logger) *Application {
 		panic(err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	server := &http.Server{}
+	server := &http.Server{
+		ReadTimeout: cfg.Server.ReadHeaderTimeout,
+	}
 
 	app := &Application{
 		cfg:    cfg,
 		log:    log,
-		ctx:    ctx,
-		cancel: cancel,
 		server: server,
 		router: router,
 	}
+
 	return app
 }
 
 func (a *Application) RegisterHandlers() {
 	a.router.GET("/ping", a.Handlers.Status.Ping())
 
-	authRoute := a.router.Group("/auth")
+	authRoute := a.router.Group("/authhandler")
 	authRoute.POST("/register", a.Handlers.Auth.Register())
 	authRoute.POST("/login", a.Handlers.Auth.Login())
 }
@@ -74,19 +72,24 @@ func (a *Application) Run() {
 		"version", version.Version,
 		"build_time", version.BuildTime,
 	)
+
 	if err := a.server.ListenAndServe(); err != nil {
-		a.log.Error("application failed to start", err.Error())
+		a.log.Error(fmt.Sprintf("start application: %v", err))
 	}
 }
 
 func (a *Application) gracefulShutdown() {
-	signalCtx, stop := signal.NotifyContext(a.ctx, syscall.SIGINT, syscall.SIGTERM)
+	ctx := context.Background()
+
+	signalCtx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	<-signalCtx.Done()
 	a.log.Info("shutting down server...")
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	const waitingTime = 5 * time.Second
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), waitingTime)
 	defer cancel()
 
 	if err := a.server.Shutdown(shutdownCtx); err != nil {

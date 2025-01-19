@@ -1,7 +1,7 @@
 package version
 
 var (
-	Name      = ""
-	Version   = ""
-	BuildTime = ""
+	Name      = "" //nolint:gochecknoglobals // this application specific
+	Version   = "" //nolint:gochecknoglobals // this application specific
+	BuildTime = "" //nolint:gochecknoglobals // this application specific
 )
