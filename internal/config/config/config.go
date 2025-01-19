@@ -23,15 +23,15 @@ type Logging struct {
 }
 
 type Postgres struct {
-	Host            string `env:"POSTGRES_HOST"     env-default:"localhost" required:"true"`
-	Port            string `env:"POSTGRES_PORT"     env-default:"5432"      required:"true"`
-	User            string `env:"POSTGRES_USER"     env-default:"postgres"  required:"true"`
-	Password        string `env:"POSTGRES_PASSWORD" env-default:"postgres"  required:"true"`
-	Database        string `env:"POSTGRES_DB"       env-default:"postgres"  required:"true"`
-	SslMode         string `env:"SSL_MODE"          env-default:"disable"   required:"true"`
-	MaxConns        string `env:"MAX_CONNS"         env-default:"10"        required:"true"`
-	ConnMaxLifetime string `env:"CONN_MAX_LIFETIME" env-default:"10m"       required:"true"`
-	ConnMaxIdleTime string `env:"CONN_MAX_IDLETIME" env-default:"5m"        required:"true"`
+	Host            string        `env:"POSTGRES_HOST"     env-default:"localhost" required:"true"`
+	Port            string        `env:"POSTGRES_PORT"     env-default:"5432"      required:"true"`
+	User            string        `env:"POSTGRES_USER"     env-default:"postgres"  required:"true"`
+	Password        string        `env:"POSTGRES_PASSWORD" env-default:"postgres"  required:"true"`
+	Database        string        `env:"POSTGRES_DB"       env-default:"postgres"  required:"true"`
+	SslMode         string        `env:"SSL_MODE"          env-default:"disable"   required:"true"`
+	MaxConns        int32         `env:"MAX_CONNS"         env-default:"10"        required:"true"`
+	ConnMaxLifetime time.Duration `env:"CONN_MAX_LIFETIME" env-default:"10m"       required:"true"`
+	ConnMaxIdleTime time.Duration `env:"CONN_MAX_IDLETIME" env-default:"5m"        required:"true"`
 }
 
 type Password struct {

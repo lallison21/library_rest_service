@@ -17,8 +17,8 @@ func New(cfg config.Postgres, log *slog.Logger) *pgxpool.Pool {
 	defer cancel()
 
 	dataSourceName := fmt.Sprintf(
-		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s"+
-			"pool_max_conns=%s pool_max_conn_lifetime=%s pool_max_conn_idle_time=%s",
+		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s "+
+			"pool_max_conns=%d pool_max_conn_lifetime=%v pool_max_conn_idle_time=%v",
 		cfg.Host,
 		cfg.Port,
 		cfg.User,

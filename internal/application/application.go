@@ -52,7 +52,7 @@ func New(cfg *config.Config, log *slog.Logger) *Application {
 func (a *Application) RegisterHandlers() {
 	a.router.GET("/ping", a.Handlers.Status.Ping())
 
-	authRoute := a.router.Group("/authhandler")
+	authRoute := a.router.Group("/auth")
 	authRoute.POST("/register", a.Handlers.Auth.Register())
 	authRoute.POST("/login", a.Handlers.Auth.Login())
 }
